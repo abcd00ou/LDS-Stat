@@ -1,0 +1,31 @@
+The program is based on the paper, "An Analytical Approximation for 
+the GARCH Option Pricing Model," by Jin-Chuan Duan, Genevieve Gauthier and 
+Jean-Guy Simonato, 1999, Journal of Computational Finance, 75-116.
+
+==============================
+Date: March 18, 2008
+
+This package is the property of Jin-Chuan Duan, Genevieve Gauthier 
+and Jean-Guy Simonato. It is made for academic use. The user must 
+acknowledge the authors and the paper. Any commerical use must obtain
+a prior approval from the authors.
+
+Corresponding address:
+Jin-Chuan Duan
+Risk Management Institute
+National University of Singapore
+E-mail: bizdjc@nus.edu.sg
+==============================
+
+This package contains 7 files (including this one). The file "erratum_March_2008.pdf" is a file containing typographic corrections to the paper. The file 
+"example.m" is a Matlab program to demonstrate the use of the analytical
+approximation technique developed by J.-C. Duan, G. Gauthier and 
+J.-G. Simonato for the GARCH option pricing model. Please refer to 
+the article for details.
+
+The file "gap.m" contains the procedures for various calculations 
+except for the third moment. The file "third_r2.dll" is compiled from some C++ source codes to be called by the Matlab 
+program. The use of the "third_r2.dll" is to accelerate this program.
+
+Alternatively, one can use an all Matlab version, which "gapm.m" can be used in place of "gap.m". This all Matlab version will use "third_m.m" instead of "third.r2.dll".
+
