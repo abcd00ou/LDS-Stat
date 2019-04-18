@@ -1,0 +1,241 @@
+/********************************************************************
+**  This program calibrates the GARCH option pricing model using the
+**  market implied volatilities for all maturities and strike prices.
+**        (Constrained calibration)
+**  Written by Jin-Chuan Duan on April 23, 1997
+********************************************************************/
+
+NEW;
+
+  TS=HSEC;
+  FNAME="FTSE_2.OUT";
+  OUTPUT FILE=^FNAME RESET;    @ Output file name @
+  OUTPUT ON;
+
+@ Data input @
+
+  LOAD Z[9,11]=FTSE_2.DAT;
+
+  @ Format of the data set
+
+    1st row: maturities
+    The rest of rows:
+     1st col: exercise prices
+     2nd and 3rd col: call and put prices for 1st maturity
+     4th and 5th col: call and put prices for 2nd maturity
+        and so on
+  @
+
+  MVECT=Z[1,2:COLS(Z)]';
+  MVEC=ZEROS(ROWS(MVECT)/2,1);
+  I=1;
+  DO WHILE I<=ROWS(MVECT)/2;
+    MVEC[I,1]=MVECT[2*(i-1)+1,1];
+    I=I+1;
+  ENDO;
+    @ Maturity in # of calendar days correponding the data set Z @
+
+  SVEC=MVEC;  @ for defining global variable @
+  RVEC=MVEC;  @ for defining global variable @
+
+  Z=Z[2:ROWS(Z),.]; @ Remove the first row of data set. This row
+                      contains maturity information @
+  EX=Z[.,1];
+
+  NDAY=365;
+  ISIG=ZEROS(ROWS(EX),ROWS(MVEC));
+  TSIG=ISIG;  @ Initialize TSIG which is updated in SMILE_FN.PRC @
+
+@ General specification for the run @
+
+  B0    = 0.00000429;
+  B1    = 0.72507034;
+  B2    = 0.07560027;
+  CPLUS = 1.35643575;
+  ASTD1 = 0.16118134; 
+
+  PARFIX=B0|B1|B2|CPLUS;  @ parameter values fixed @
+
+  PARAM=ASTD1;
+  LET SF=1;
+  SF=SF/100;  @ for numerical precision purpose @
+  PARAM=PARAM.*SF;
+  NPAR=ROWS(PARAM);
+
+@ Options to control convergence @
+
+  MAXITER=100;  @ Maximum # of iterations @
+  EPS1=1E-5; @ Convergence criterion for Euclidean norm of para.
+               diff.@
+  EPS2=1E-6; @ Convergence criterion for fun. diff. @
+
+@ Prepare the data set for an inference based on the put-call parity @
+
+  I=1;
+  DO WHILE I<=ROWS(MVEC);
+    C=Z[.,2*I];
+    P=Z[.,2*I+1];
+    C1=C;
+    P1=P;
+    E1=EX;
+    J=1; EXNUM=ROWS(E1);
+    JUMP1: DO WHILE J<=EXNUM;
+      IF C1[J,1]<=0 OR P1[J,1]<=0;
+        IF J==1;
+          C1=C1[2:EXNUM,.];
+          P1=P1[2:EXNUM,.];
+          E1=E1[2:EXNUM,.];
+          EXNUM=ROWS(E1);
+          GOTO JUMP1;
+        ENDIF;
+        IF J==EXNUM;
+          C1=C1[1:EXNUM-1,.];
+          P1=P1[1:EXNUM-1,.];
+          E1=E1[1:EXNUM-1,.];
+          EXNUM=ROWS(E1);
+          GOTO JUMP1;
+        ENDIF;
+        C1=C1[1:J-1,.]|C1[J+1:EXNUM,.];
+        P1=P1[1:J-1,.]|P1[J+1:EXNUM,.];
+        E1=E1[1:J-1,.]|E1[J+1:EXNUM,.];
+        EXNUM=ROWS(E1);
+        GOTO JUMP1;
+      ENDIF;
+      J=J+1;
+    ENDO;
+
+    IF I==1;
+      Y=C1-P1;
+      X=E1;
+      XC=ONES(ROWS(E1),1);
+    ELSE;
+      Y=Y|(C1-P1);
+      X=X~ZEROS(ROWS(X),1);
+      X=X|(ZEROS(ROWS(E1),COLS(X)-1)~E1);
+      XC=XC~ZEROS(ROWS(XC),1);
+      XC=XC|(ZEROS(ROWS(E1),COLS(XC)-1)~ONES(ROWS(E1),1));
+    ENDIF;
+
+    I=I+1;
+  ENDO;
+
+@ Parameter specs for the put-call parity analysis @
+
+  NPAR1=COLS(XC)-1;
+  PARAM1=ZEROS(NPAR1,1);
+  SF1=ONES(NPAR1,1);
+  PARAM1=PARAM1.*SF1;
+
+
+@ Compile procs. and start program @
+
+  #INCLUDE GHOPT.PRC;
+  #INCLUDE BSOPT.PRC;
+  #INCLUDE IMPSIG.PRC;
+  #INCLUDE SMILEFNC.PRC;
+  #INCLUDE PUTCALL.PRC
+  #INCLUDE NEWTON.PRC;
+  #INCLUDE NEWTON1.PRC;
+
+
+@ compute the market smile @
+
+  {PARAM1,LOGLIK,GRADIENT,NITER,PARDIFF}=
+     NEWTON1(NPAR1,PARAM1,EPS1,EPS2,MAXITER,FNAME);
+
+   PARAM1=PARAM1./SF1;
+   PV=ZEROS(NPAR1+1,1);
+   I=1;
+   DO WHILE I<=NPAR1;
+     PV[I+1,1]=PV[I,1]+ABS(PARAM1[I,1]);
+     I=I+1;
+   ENDO;
+
+   X1=ONES(ROWS(X),1)~X;
+   Y1=Y+XC*PV;
+   D=INVPD(X1'X1)*(X1'*Y1);
+
+
+   SVEC=D[1,1]*ONES(ROWS(MVEC),1);
+   SVEC=SVEC-PV;
+   RVEC=-LN(-D[2:ROWS(MVEC)+1,.])./MVEC;
+
+   I=1;
+   DO WHILE I<=ROWS(MVEC);
+     C=Z[.,2*I];
+     P=Z[.,2*I+1];
+     J=1;
+     DO WHILE J<=ROWS(EX);
+      ISIG[J,I]=-99;
+      IF C[J,1]>0;
+        {ISIG[J,I]}=
+        IMPSIG(C[J,1],RVEC[I,1],SVEC[I,1],EX[J,1],MVEC[I,1],0.01);
+        ISIG[J,I]=ISIG[J,I]*SQRT(NDAY);
+        IF ISIG[J,I]<=0; ISIG[J,I]=-99; ENDIF;
+      ENDIF;
+      J=J+1;
+     ENDO;
+
+     I=I+1;
+   ENDO;
+
+
+  MVEC=MVEC';
+  RVEC=RVEC';
+  SVEC=SVEC';
+
+  PRINT;
+  "Market prices for calls";
+  PRINT; FORMAT /RD /M1 6,1;
+  MNUM=COLS(MVEC);
+  "Strike Price                   Maturities";
+  "    ";;
+  I=1;
+  DO WHILE I<=MNUM;
+    "       ";;MVEC[1,I];;
+    I=I+1;
+  ENDO;
+  PRINT;
+  Z;
+  PRINT;
+  "Market implied volatilities for calls";
+  PRINT; FORMAT /M1 /RD 12,6;
+  "Strike Price                  Maturities";
+  "             ";;MVEC;
+  EX~ISIG;
+  PRINT;
+  "Implied interest rates:  ";RVEC*NDAY;
+  "Implied index spots:     ";SVEC;
+
+@ Calibrate the GARCH option pricing model using the observed smile @
+
+  {PARAM,LOGLIK,GRADIENT,NITER,PARDIFF}=
+     NEWTON(NPAR,PARAM,EPS1,EPS2,MAXITER,FNAME);
+
+   PARAM=PARAM./SF;
+   B0=PARFIX[1,1];
+   B1=PARFIX[2,1];
+   B2=PARFIX[3,1];
+   CPLUS=PARFIX[4,1];
+   ASTD1=abs(PARAM[1,1]);
+
+OUTPUT ON;
+PRINT; FORMAT /M1 /RD 15,8;
+"Estimated parameter values:";
+"B0    = ";;B0;
+"B1    = ";;B1;
+"B2    = ";;B2;
+"C+Lam = ";;CPLUS;
+"ASTD1 = ";;ASTD1;
+PRINT;
+"Root Mean Squared Error           = ";;SQRT(-LOGLIK);
+"Imp. Risk-Neutral Stationary S.D. = ";;SQRT(NDAY*B0/(1-B1-B2*(1+CPLUS^2)));
+PRINT; FORMAT /M1 /RD 12,6;
+"Implied volatilities derived from the GARCH option pricing model";
+"Strike Price                  Maturities";
+"             ";;MVEC;
+EX~TSIG;
+PRINT;
+"Time elapsped = ";;ETSTR(HSEC-TS);
+
+END;
