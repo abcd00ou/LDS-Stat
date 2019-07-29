@@ -1,0 +1,106 @@
+library(TruncatedNormal)
+library(mvtnorm)
+set.seed(999)
+
+covmat<-function(rho12,rho13,rho23){
+  matrix(c(1,rho12,rho13,rho12,1,rho23,rho13,rho23,1),nrow=3,byrow=T)
+}
+
+
+cross1<-function(t,x,m,sig,mu,n=10000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  R<-(2*mu)/(sig^2)
+  cdf<-pmvnorm(lower=-Inf,
+              upper=c(((x1-2*m1-mu*t1)/(sig*sqrt(t1))),((x2-2*m1-mu*t2)/(sig*sqrt(t2))),((x3-2*m1-mu*t3)/(sig*sqrt(t3)))),
+              mean=rep(0,3),sigma = covmat(sqrt(t1/t2),sqrt(t1/t3),sqrt(t2/t3)))
+  
+  exp(R*m1)*cdf[1]
+}
+
+
+cross2<-function(t,x,m,sig,mu,n=10000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  R<-(2*mu)/(sig^2)
+  cdf<-pmvnorm(lower=-Inf,
+               upper=c(((x1+mu*t1)/(sig*sqrt(t1))),((x2-2*m2-mu*t2)/(sig*sqrt(t2))),((x3-2*m2-mu*t3)/(sig*sqrt(t3)))),
+               mean=rep(0,3),sigma = covmat(-sqrt(t1/t2),-sqrt(t1/t3),sqrt(t2/t3)))
+  exp(R*m2)*cdf[1]
+}
+
+cross3<-function(t,x,m,sig,mu,n=10000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  R<-(2*mu)/(sig^2)
+  cdf<-pmvnorm(lower=-Inf,
+               upper=c(((x1+mu*t1)/(sig*sqrt(t1))),((x2+mu*t2)/(sig*sqrt(t2))),((x3-2*m3-mu*t3)/(sig*sqrt(t3)))),
+               mean=rep(0,3),sigma = covmat(sqrt(t1/t2),-sqrt(t1/t3),-sqrt(t2/t3)))
+  exp(R*m3)*cdf[1]
+}
+
+cross4<-function(t,x,m,sig,mu,n=10000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  R<-(2*mu)/(sig^2)
+  cdf<-pmvnorm(lower=-Inf,
+               upper=c(((x1-2*m1+mu*t1)/(sig*sqrt(t1))),((x2-2*(m2-m1)-mu*t2)/(sig*sqrt(t2))),((x3-2*(m2-m1)-mu*t3)/(sig*sqrt(t3)))),
+               mean=rep(0,3),sigma= covmat(-sqrt(t1/t2),-sqrt(t1/t3),sqrt(t2/t3)))
+  exp(R*(m2-m1))*cdf[1]
+}
+
+cross5<-function(t,x,m,sig,mu,n=10000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  R<-(2*mu)/(sig^2)
+  cdf<-pmvnorm(lower=-Inf,
+               upper=c(((x1-2*m1+mu*t1)/(sig*sqrt(t1))),((x2-2*m1+mu*t2)/(sig*sqrt(t2))),((x3-2*(m3-m1)-mu*t3)/(sig*sqrt(t3)))),
+               mean=rep(0,3),sigma = covmat(sqrt(t1/t2),-sqrt(t1/t3),-sqrt(t2/t3)))
+  exp(R*(m3-m1))*cdf[1]
+}
+?exp
+cross6<-function(t,x,m,sig,mu,n=10000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  R<-(2*mu)/(sig^2)
+  cdf<-pmvnorm(lower=-Inf,
+               upper=c(((x1-mu*t1)/(sig*sqrt(t1))),((x2-2*m2+mu*t2)/(sig*sqrt(t2))),((x3-2*(m3-m2)-mu*t3)/(sig*sqrt(t3)))),
+               mean=rep(0,3),sigma = covmat(-sqrt(t1/t2),sqrt(t1/t3),-sqrt(t2/t3)))
+  exp(R*(m3-m2))*cdf[1]
+}
+
+cross7<-function(t,x,m,sig,mu,n=10000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  R<-(2*mu)/(sig^2)
+  cdf<-pmvnorm(lower=-Inf,
+               upper=c(((x1-2*m1-mu*t1)/(sig*sqrt(t1))),((x2-2*(m2-m1)+mu*t2)/(sig*sqrt(t2))),((x3-2*(m3-m2+m1)-mu*t3)/(sig*sqrt(t3)))),
+               mean=rep(0,3),sigma = covmat(-sqrt(t1/t2),sqrt(t1/t3),-sqrt(t2/t3)))
+  exp(R*(m3-m2+m1))*cdf[1]
+}
+
+
+pr<-function(t,x,m,sig,mu,n=100000){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  x1<-x[1];x2<-x[2];x3<-x[3]
+  m1<-m[1];m2<-m[2];m3<-m[3]
+  cdf<-pmvnorm(lower=-Inf,
+               upper = c((x1-mu*t1)/(sig*sqrt(t1)),(x2-mu*t2)/(sig*sqrt(t2)),(x3-mu*t3)/(sig*sqrt(t3))),
+               mean=rep(0,3),sigma = covmat(sqrt(t1/t2),sqrt(t1/t3),sqrt(t2/t3)))
+  
+  cdf[1]
+}
+
+PA<-function(mu,t,x,m,sigma){
+  pr(t,x,m,sigma,mu)-cross1(t,x,m,sigma,mu)-cross2(t,x,m,sigma,mu)-
+    cross3(t,x,m,sigma,mu)+cross4(t,x,m,sigma,mu)+cross5(t,x,m,sigma,mu)+
+    cross6(t,x,m,sigma,mu)-cross7(t,x,m,sigma,mu)
+  
+}
