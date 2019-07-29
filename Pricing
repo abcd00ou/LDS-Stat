@@ -1,0 +1,325 @@
+rm(list=ls())
+setwd("C:/Users/abcd0/Dropbox/졸업논문준비")
+
+
+Upoption<-function(S0,K,r,sigma,t,B,L,n=10000){
+  source("C:/Users/abcd0/Dropbox/졸업논문준비/jointfunct.R")
+  ##value setting
+  L1<-L[1];L2<-L[2];L3<-L[3]
+  B1<-B[1];B2<-B[2];B3<-B[3]
+  t1<-t[1];t2<-t[2];t3<-T<-t[3]
+  k=log(K/S0)
+  m1=log(B1/S0);m2=log(B2/S0);m3=log(B3/S0)
+  x1=log(L1/S0);x2=log(L2/S0);x3=log(L3/S0)
+  t=c(t1,t2,t3)
+  x=c(x1,x2,x3)
+  m=c(m1,m2,m3)
+  
+  if(K<L3){
+    UOP<-K*exp(-r*T)*PA(mu = r-sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma)-S0*PA(mu=r+sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma)
+    
+    UIP<-K*exp(-r*T)*(pnorm((k-(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=r-sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma))-
+      S0*(pnorm((k-(r+sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=r+sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma))
+    
+    UOC<-S0*(PA(mu=r+sigma^2/2,t,x=c(x1,x2,x3),m,sigma)-PA(mu=r+sigma^2/2,t,x=c(x1,x2,k),m,sigma))-
+      K*exp(-r*T)*(PA(mu=r-sigma^2/2,t,x=c(x1,x2,x3),m,sigma)-PA(mu=r-sigma^2/2,t,x=c(x1,x2,k),m,sigma))
+    
+    UIC<-S0*(pnorm(-((k-(r+sigma^2/2)*t3)/(sigma*sqrt(t3))))-PA(mu=r+sigma^2/2,t,x=c(x1,x2,x3),m,sigma)+PA(mu=r+sigma^2/2,t,x=c(x1,x2,k),m,sigma))-
+      K*exp(-r*T)*(pnorm(-((k-(r-sigma^2/2)*t3)/(sigma*sqrt(t3))))-PA(mu=r-sigma^2/2,t,x=c(x1,x2,x3),m,sigma)+PA(mu=r-sigma^2/2,t,x=c(x1,x2,k),m,sigma))
+    
+  }
+  
+  else{
+    UOP<-K*exp(-r*T)*PA(mu = r-sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma)-S0*PA(mu=r+sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma)
+    
+    UIP<-K*exp(-r*T)*(pnorm((k-(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=r-sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma))-
+      S0*(pnorm((k-(r+sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=r+sigma^2/2,t,x=c(x1,x2,min(x3,k)),m,sigma))
+    
+    UOC<-0
+    
+    UIC<-S0*pnorm(-((k-(r+sigma^2/2)*t3)/(sigma*sqrt(t3))))-K*exp(-r*T)*pnorm(-(k-(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))
+    
+    
+  }
+  
+  result<-matrix(c(UOC,UIC,UOP,UIP,UOC+UIC,UOP+UIP),nrow=1)
+  colnames(result)<-c("UOC","UIC","UOP","UIP","Call","Put")
+  return(result)
+  
+  
+}
+
+
+
+Downoption<-function(S0,K,r,sigma,t,B,L,n=10000){
+  source("C:/Users/abcd0/Dropbox/졸업논문준비/jointfunct.R")
+  ##value setting
+  L1<-L[1];L2<-L[2];L3<-L[3]
+  B1<-B[1];B2<-B[2];B3<-B[3]
+  t1<-t[1];t2<-t[2];t3<-T<-t[3]
+  k=log(K/S0)
+  sigma<-sigma
+  m1=log(B1/S0);m2=log(B2/S0);m3=log(B3/S0)
+  x1=log(L1/S0);x2=log(L2/S0);x3=log(L3/S0)
+  t=c(t1,t2,t3)
+  x=c(x1,x2,x3)
+  m=c(m1,m2,m3)
+  
+  if(K>L3){
+    DOC<-S0*PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma)-
+      K*exp(-r*T)*PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma)
+    
+    DIC<-S0*(pnorm((-k+(r+sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma))-
+      K*exp(-r*T)*(pnorm((-k+(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma))
+    
+    DOP<-K*exp(-r*T)*(PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,-x3),m=c(-m1,-m2,-m3),sigma)-PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,-k),m=c(-m1,-m2,-m3),sigma))-
+      S0*(PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,-x3),m=c(-m1,-m2,-m3),sigma)-PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,-k),m=c(-m1,-m2,-m3),sigma))
+    
+    DIP<-K*exp(-r*T)*(pnorm((k-(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,-x3),m=c(-m1,-m2,-m3),sigma)+PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,-k),m=c(-m1,-m2,-m3),sigma))-
+      S0*(pnorm((k-(r+sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,-x3),m=c(-m1,-m2,-m3),sigma)+PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,-k),m=c(-m1,-m2,-m3),sigma))
+    
+  }
+  else{
+    DOC<-S0*PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma)-
+      K*exp(-r*T)*PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma)
+    
+    DIC<-S0*(pnorm((-k+(r+sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=-r-sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma))-
+      K*exp(-r*T)*(pnorm((-k+(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))-PA(mu=-r+sigma^2/2,t,x=c(-x1,-x2,min(-x3,-k)),m=c(-m1,-m2,-m3),sigma))
+    
+    DOP<-0
+    
+    DIP<-K*exp(-r*T)*pnorm((k-(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))-S0*pnorm((-k+(r-sigma^2/2)*t3)/(sigma*sqrt(t3)))
+    
+  }
+  result<-matrix(c(DOC,DIC,DOP,DIP,DOC+DIC,DOP+DIP),nrow=1)
+  colnames(result)<-c("DOC","DIC","DOP","DIP","Call","Put")
+  return(result)
+  
+  
+}
+
+
+
+upbarrsim<-function(S0,K,r,sigma,t,B,L,n,m){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  B1<-B[1];B2<-B[2];B3<-B[3]
+  L1<-L[1];L2<-L[2];L3<-L[3]
+  
+  st<-rep(0,n)
+  st[1]<-S0
+  V1<-rep(0,m)
+  V2<-rep(0,m)
+  V3<-rep(0,m)
+  V4<-rep(0,m)
+  dt<-(t3*252)/n
+  T1<-round(t1/dt,0) ;T2<-round(t2/dt,0) 
+  
+  for(i in 1:m){
+    
+    for(j in 2:n){
+      st[j]<-st[j-1]*exp((r-sigma^2/2)*dt+sigma*sqrt(dt)*rnorm(1,0,1))
+      
+    }
+    
+    s1<-max(st[1:T1])
+    s2<-max(st[(T1+1):T2])
+    s3<-max(st[(T2+1):n])
+    
+    V1[i]<-ifelse(s1<B1&st[T1]<L1&s2<B2&st[T2]<L2&s3<B3&st[n]<L3,exp(-r*t3)*max(st[n]-K,0),0)
+    V2[i]<-ifelse(s1>B1|st[T1]>L1|s2>B2|st[T2]>L2|s3>B3|st[n]>L3,exp(-r*t3)*max(st[n]-K,0),0)
+    V3[i]<-ifelse(s1<B1&st[T1]<L1&s2<B2&st[T2]<L2&s3<B3&st[n]<L3,exp(-r*t3)*max(K-st[n],0),0)
+    V4[i]<-ifelse(s1>B1|st[T1]>L1|s2>B2|st[T2]>L2|s3>B3|st[n]>L3,exp(-r*t3)*max(K-st[n],0),0)
+    
+  }
+  
+  UOC<-mean(V1);UIC<-mean(V2);UOP<-mean(V3);UIP<-mean(V4)
+  result<-matrix(c(UOC,UIC,UOP,UIP,UOC+UIC,UOP+UIP),ncol=6)
+  colnames(result)<-c("UOC","UIC","UOP","UIP","Call","Put")
+  condition<-matrix(c(S0,K,r,sigma,B1,B2,B3,L1,L2,L3),ncol=10)
+  colnames(condition)<-c("S0","K","r","sigma","B1","B2","B3","L1","L2","L3")
+  
+  print("----------------------------------------------------")
+  print(condition)
+  print(result)
+  print("----------------------------------------------------")
+ 
+  
+}
+
+
+
+
+downbarrsim<-function(S0,K,r,sigma,t,B,L,n,m){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  B1<-B[1];B2<-B[2];B3<-B[3]
+  L1<-L[1];L2<-L[2];L3<-L[3]
+  
+  st<-rep(0,n)
+  st[1]<-S0
+  V1<-rep(0,m)
+  V2<-rep(0,m)
+  V3<-rep(0,m)
+  V4<-rep(0,m)
+  dt<-t3/n
+  T1<-round(t1/dt,0) ;T2<-round(t2/dt,0) 
+  
+  for(i in 1:m){
+    
+    for(j in 2:n){
+      st[j]<-st[j-1]*exp((r-sigma^2/2)*dt+sigma*sqrt(dt)*rnorm(1,0,1))
+      
+    }
+    
+    s1<-min(st[1:T1])
+    s2<-min(st[(T1+1):T2])
+    s3<-min(st[(T2+1):n])
+    
+    V1[i]<-ifelse(s1>B1&st[T1]>L1&s2>B2&st[T2]>L2&s3>B3&st[n]>L3,exp(-r*t3)*max(st[n]-K,0),0)
+    V2[i]<-ifelse(s1<B1|st[T1]<L1|s2<B2|st[T2]<L2|s3<B3|st[n]<L3,exp(-r*t3)*max(st[n]-K,0),0)
+    V3[i]<-ifelse(s1>B1&st[T1]>L1&s2>B2&st[T2]>L2&s3>B3&st[n]>L3,exp(-r*t3)*max(K-st[n],0),0)
+    V4[i]<-ifelse(s1<B1|st[T1]<L1|s2<B2|st[T2]<L2|s3<B3|st[n]<L3,exp(-r*t3)*max(K-st[n],0),0)
+    
+  }
+  
+  DOC<-mean(V1);DIC<-mean(V2);DOP<-mean(V3);DIP<-mean(V4)
+  result<-matrix(c(DOC,DIC,DOP,DIP,DOC+DIC,DOP+DIP),ncol=6)
+  colnames(result)<-c("DOC","DIC","DOP","DIP","Call","Put")
+  condition<-matrix(c(S0,K,r,sigma,B1,B2,B3,L1,L2,L3),ncol=10)
+  colnames(condition)<-c("S0","K","r","sigma","B1","B2","B3","L1","L2","L3")
+  
+  print("----------------------------------------------------")
+  print(condition)
+  print(result)
+  print("----------------------------------------------------")
+  # return(result)
+  
+  
+}
+
+
+Gupbarrsim<-function(S0,K,r,beta,theta,lambda,sigma0,t,B,L,n,m){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  B1<-B[1];B2<-B[2];B3<-B[3]
+  L1<-L[1];L2<-L[2];L3<-L[3]
+  
+  sigma2<-rep(0,n)
+  sigma2[1]<-sigma0^2
+  V1<-rep(0,m)
+  V2<-rep(0,m)
+  V3<-rep(0,m)
+  V4<-rep(0,m)
+  St<-rep(0,n)
+  St[1]<-S0
+  
+  dt<-(t3*252)/n
+  T1<-round((t1/t3)*n,0) ;T2<-round((t2/t3)*n,0) 
+  
+  
+  for(i in 1:m){
+    
+    if(abs(lambda)<=sqrt((1-beta[2]-beta[3])/beta[2])){
+      for( j in 2:n){
+        sv<-sqrt(beta[1]/(1-(1+lambda^2)*beta[2]-beta[3]))
+        sigma2[j]<-beta[1]+beta[2]*(sv*rnorm(1,0,1)-theta-lambda*sqrt(sigma2[j-1]))^2+beta[3]*sigma2[j-1]
+        St[j]<-St[j-1]*exp((r-sigma2[j]/2)*dt+sqrt(dt)*sv*rnorm(1,0,1))    
+      }
+    }
+    
+    else{
+      for( j in 2:n){
+        sigma2[j]<-beta[1]+(beta[2]*(rnorm(1,0,1)-theta-lambda)^2+beta[3])*sigma2[j-1]
+        St[j]<-St[j-1]*exp((r-sigma2[j]/2)*dt+sqrt(dt)*sqrt(sigma2[j])*rnorm(1,0,1))
+      }
+    }
+    
+    
+    s1<-max(St[(1:T1)])
+    s2<-max(St[(T1+1):T2])
+    s3<-max(St[(T2+1):n])
+    
+    V1[i]<-ifelse(s1<B1&St[T1]<L1&s2<B2&St[T2]<L2&s3<B3&St[n]<L3,exp(-r*t3)*max(St[n]-K,0),0)
+    V2[i]<-ifelse(s1>B1|St[T1]>L1|s2>B2|St[T2]>L2|s3>B3|St[n]>L3,exp(-r*t3)*max(St[n]-K,0),0)
+    V3[i]<-ifelse(s1<B1&St[T1]<L1&s2<B2&St[T2]<L2&s3<B3&St[n]<L3,exp(-r*t3)*max(K-St[n],0),0)
+    V4[i]<-ifelse(s1>B1|St[T1]>L1|s2>B2|St[T2]>L2|s3>B3|St[n]>L3,exp(-r*t3)*max(K-St[n],0),0)
+    
+  }
+  
+  
+  UOC<-mean(V1);UIC<-mean(V2);UOP<-mean(V3);UIP<-mean(V4)
+  result<-matrix(c(UOC,UIC,UOP,UIP,UOC+UIC,UOP+UIP),ncol=6)
+  colnames(result)<-c("UOC","UIC","UOP","UIP","Call","Put")
+  condition<-matrix(c(S0,K,r,sigma0,B1,B2,B3,L1,L2,L3),ncol=10)
+  colnames(condition)<-c("S0","K","r","sigma","B1","B2","B3","L1","L2","L3")
+  
+  print("----------------------------------------------------")
+  print(condition)
+  print(result)
+  print("----------------------------------------------------")
+  
+  
+}
+
+
+Gdownbarrsim<-function(S0,K,r,beta,theta,lambda,sigma0,t,B,L,n,m){
+  t1<-t[1];t2<-t[2];t3<-t[3]
+  B1<-B[1];B2<-B[2];B3<-B[3]
+  L1<-L[1];L2<-L[2];L3<-L[3]
+  
+  sigma2<-rep(0,n)
+  sigma2[1]<-sigma0^2
+  V1<-rep(0,m)
+  V2<-rep(0,m)
+  V3<-rep(0,m)
+  V4<-rep(0,m)
+  St<-rep(0,n)
+  St[1]<-S0
+  
+  dt<-(t3*252)/n
+  T1<-round((t1/t3)*n,0) ;T2<-round((t2/t3)*n,0) 
+  
+  
+  
+  for(i in 1:m){
+    
+    if(abs(lambda)<sqrt((1-beta[2]-beta[3])/beta[2])){
+      for( j in 2:n){
+        sv<-sqrt(beta[1]/(1-(1+lambda^2)*beta[2]-beta[3]))
+        sigma2[j]<-beta[1]+beta[2]*(sv*rnorm(1,0,1)-theta-lambda*sqrt(sigma2[j-1]))^2+beta[3]*sigma2[j-1]
+        St[j]<-St[j-1]*exp((r-sigma2[j]/2)*dt+sqrt(dt)*sv*rnorm(1,0,1))    
+      }
+    }
+    
+    else{
+      for( j in 2:n){
+        sigma2[j]<-beta[1]+(beta[2]*(rnorm(1,0,1)-theta-lambda)^2+beta[3])*sigma2[j-1]
+        St[j]<-St[j-1]*exp((r-sigma2[j]/2)*dt+sqrt(dt)*sqrt(sigma2[j])*rnorm(1,0,1))
+      }
+    }
+    
+    
+    s1<-min(St[(1:T1)])
+    s2<-min(St[(T1+1):T2])
+    s3<-min(St[(T2+1):n])
+    
+    V1[i]<-ifelse(s1>B1&St[T1]>L1&s2>B2&St[T2]>L2&s3>B3&St[n]>L3,exp(-r*t3)*max(St[n]-K,0),0)
+    V2[i]<-ifelse(s1<B1|St[T1]<L1|s2<B2|St[T2]<L2|s3<B3|St[n]<L3,exp(-r*t3)*max(St[n]-K,0),0)
+    V3[i]<-ifelse(s1>B1&St[T1]>L1&s2>B2&St[T2]>L2&s3>B3&St[n]>L3,exp(-r*t3)*max(K-St[n],0),0)
+    V4[i]<-ifelse(s1<B1|St[T1]<L1|s2<B2|St[T2]<L2|s3<B3|St[n]<L3,exp(-r*t3)*max(K-St[n],0),0)
+    
+  }
+  
+  
+  DOC<-mean(V1);DIC<-mean(V2);DOP<-mean(V3);DIP<-mean(V4)
+  result<-matrix(c(DOC,DIC,DOP,DIP,DOC+DIC,DOP+DIP),ncol=6)
+  colnames(result)<-c("DOC","DIC","DOP","DIP","Call","Put")
+  condition<-matrix(c(S0,K,r,sigma0,B1,B2,B3,L1,L2,L3),ncol=10)
+  colnames(condition)<-c("S0","K","r","sigma","B1","B2","B3","L1","L2","L3")
+  
+  print("----------------------------------------------------")
+  print(condition)
+  print(result)
+  print("----------------------------------------------------")
+  
+  
+}
+
