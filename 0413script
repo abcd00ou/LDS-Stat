@@ -1,0 +1,187 @@
+import dash_html_components as html
+# Dash html code in python
+html.Div([
+    html.H1('First Dash App'),
+    html.Div([
+        html.P("Dash converts Python classes into HTML"),
+        html.P("This conversion happens behind the scenes by Dash's JavaScript front-end")
+    ])
+])
+ # Above python code get converted to html code as below
+ 
+ import dash
+from jupyter_plotly_dash import JupyterDash
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = JupyterDash('simpleExample')
+
+
+import dash_html_components as html
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_core_components as dcc
+from dash.dependencies import Input, Output
+from datetime import datetime
+import pandas as pd
+from PriceIndices import MarketHistory, Indices
+
+app.layout = html.Div([html.H1('Dash Demo Graph',
+                               style={
+                                      'textAlign': 'center',
+                                      "background": "yellow"}),
+                       dcc.Graph(
+                           id='graph-1',
+                           figure={
+                               'data': [
+                                   {'x': [1, 2, 3, 4, 5, 6, 7], 'y': [10, 20, 30, 40, 50, 60, 70], 'type': 'line', 'name': 'value1'},
+                                   {'x': [1, 2, 3, 4, 5, 6, 7], 'y': [12, 22, 36, 44, 49, 58, 73], 'type': 'line', 'name': 'value2'}
+                               ],
+                               'layout': {
+                                   'title': 'Simple Line Graph',
+                                     }
+                                 }
+                            ),
+
+                            ], style={
+                                "background": "#000080"}
+                         )
+
+
+
+gfam = ['Dram', 'Nand']
+ddr = ['DDR3','DDR4','DDR5']
+GC2= ['ASUS','APPLE','Hp']
+coin_list = ['bitcoin', 'ethereum', 'ripple', 'bitcoin-cash']
+
+
+
+app.layout = html.Div([html.H1('Crypto Price Graph',
+                               style={
+                                      'textAlign': 'center',
+                                      "background": "yellow"}),
+               html.Div(['Date selector for graphs',
+               dcc.DatePickerRange(
+                   id='date-input',
+                   stay_open_on_select=False,
+                   min_date_allowed=datetime(2013, 4, 28),
+                   max_date_allowed=datetime.now(),
+                   initial_visible_month=datetime.now(),
+                   start_date=datetime(2019, 1, 1),
+                   end_date=datetime.now(),
+                   number_of_months_shown=2,
+                   month_format='MMMM,YYYY',
+                   display_format='YYYY-MM-DD',
+                   style={
+                          'color': '#11ff3b',
+                          'font-size': '18px',
+                          'margin': 0,
+                          'padding': '8px',
+                          'background': 'yellow',
+                   }
+               ),
+               
+               dcc.Dropdown(id='dropdown',
+                            #options=[{'label': i, 'value': i} for i in gfam,
+                            #        {'label': i , 'value':i} for i in ddr,
+                            #        {'label': i , 'value':i} for i in GC2}]
+                            options=[{'label': i, 'value': i} for i in coin_list],
+
+                            value='bitcoin',
+                            optionHeight=10,
+                            style={
+                                'height': '50px',
+                                'font-weight': 100,
+                                'font-size': '16px',
+                                'line-height': '10px',
+                                'color': 'gray',
+                                'margin': 0,
+                                'padding': '8px',
+                                'background': 'yellow',
+                                'position': 'middle',
+                                'display': 'inline-block',
+                                'width': '150px',
+                                'vertical-align': 'middle',
+                                }
+                            ),
+                html.Div(id='date-output'),
+                html.Div(id='intermediate-value', style={'display': 'none'}),
+                               ], className="row ",
+                    style={'marginTop': 0, 'marginBottom': 0, 'font-size': 30, 'color': 'white',
+                           'display': 'inline-block'}),
+                 html.Div(children=[html.H1(children="Data Table",
+                                          style={
+                                              'textAlign': 'center',
+                                              "background": "yellow"})
+                                  ]
+                        ),
+               html.Div(children=[html.Table(id='table'), html.Div(id='table-output')]),
+               
+               html.Div(id='graph-output'),
+                
+                              ],
+              style={"background": "#000080"}
+                            )
+
+
+@app.callback(Output('table-output', 'children'),
+              [Input('dropdown', 'value')])
+def get_data_table(option):
+    data_table = dash_table.DataTable(
+        id='datatable-data',
+        data=df.to_dict('records'),
+        columns=[{'id': c, 'name': c} for c in df.columns],
+        style_table={'overflowY': 'scroll'},
+         fixed_rows={'headers': True, 'data': 10},
+         style_cell={'width': '100px'},
+         style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+    return data_table
+
+
+@app.callback(Output('graph-output', 'children'),
+              [Input('date-input', 'start_date'),
+               Input('date-input', 'end_date'),
+               Input('dropdown', 'value')])
+def render_graph(start_date, end_date, option):
+    df = history.get_price(option, '20130428', '20200510')  # Get Bitcoin price data
+    df['date'] = pd.to_datetime(df['date'])
+    data = df[(df.date >= start_date) & (df.date <= end_date)]
+    return dcc.Graph(
+        id='graph-1',
+        figure={
+            'data': [
+                {'x': data['date'], 'y': data['price'], 'type': 'line', 'name': 'value1'},
+            ],
+            'layout': {
+                'title': f'{option.capitalize()} Price Vs Time ',
+                'plot_bgcolor': colors['background'],
+                'paper_bgcolor': colors['background'],
+                'font': {
+                    'color': colors['text'],
+                    'size': 18
+                },
+                'xaxis': {
+                        'title': 'Time',
+                        'showspikes': True,
+                        'spikedash': 'dot',
+                        'spikemode': 'across',
+                        'spikesnap': 'cursor',
+                        },
+                'yaxis': {
+                        'title': 'Price',
+                        'showspikes': True,
+                        'spikedash': 'dot',
+                        'spikemode': 'across',
+                        'spikesnap': 'cursor'
+                        },
+
+            }
+        }
+    )
+
+
+
+
+
