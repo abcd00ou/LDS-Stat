@@ -1,3 +1,33 @@
 https://medium.com/analytics-vidhya/building-a-dashboard-app-using-plotlys-dash-a-complete-guide-from-beginner-to-pro-61e890bdc423
 
 https://medium.com/analytics-vidhya/building-a-dashboard-app-using-plotlys-dash-a-complete-guide-from-beginner-to-pro-e7657a4eb707
+
+
+#### group_dropdown
+@app.callback(
+    Output('dropdown2', 'options'),
+    [Input('dropdown1', 'value')])
+def set_group_options(selected_tab):
+    return[{'label': i, 'value': i} for i in\
+    sorted(df.ddr[df.gfam == selected_tab].unique())]
+
+@app.callback(
+    Output('dropdown2', 'value'),
+    [Input('dropdown2', 'options')])
+def set_group_values(availabe_options):
+    return availabe_options[0]['value']
+
+#### subgroup_dropdown
+@app.callback(
+    Output('dropdown3', 'options'),
+    [Input('dropdown1', 'value'),
+    Input('dropdown2', 'value')])
+def set_subgroup_options(selected_tab, selected_group):
+    return[{'label': i, 'value': i} for i in\
+    sorted(df.GC2[df.gfam == selected_tab][df.ddr == selected_group].unique())]
+
+@app.callback(
+    Output('dropdown3', 'value'),
+    [Input('dropdown3', 'options')])
+def set_subgroup_values(availabe_options):
+    return availabe_options[0]['value']
